@@ -68,14 +68,14 @@ struct ContentView: View {
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                     Button(action: addItem) {
                         Label("추가", systemImage: "plus.circle.fill")
-                            .foregroundStyle(Color(hex: "#737b9f"))
+                            .foregroundStyle(Color(hex: "#8164be"))
                     }
                 }
                 .padding()
 
                 List {
                     // 진행중인 할 일들
-                    Section("진행중") {
+                    Section("진행 중") {
                         ForEach(incompleteItems) { item in
                             TodoItemRow(item: item)
                         }
@@ -104,7 +104,9 @@ struct ContentView: View {
                     }
                 }
                 .scrollContentBackground(.hidden) // 기본 배경을 숨기고
-                .background(Color(hex: "#a1acdf")) // 원하는 색상 지정
+                .background(
+                    LinearGradient(colors: [Color(hex: "#a1acdf"), Color(hex: "#8164be")], startPoint: .topLeading, endPoint: .bottomTrailing)
+                ) // 원하는 색상 지정
                 
             }
             .navigationTitle("TO DO")
@@ -132,11 +134,11 @@ struct ContentView: View {
                     }) {
                         Image(systemName: isSearching ? "xmark.circle.fill" : "magnifyingglass")
                     }
-                    .foregroundStyle(Color(hex: "#737b9f"))
+                    .foregroundStyle(Color(hex: "#8164be"))
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     EditButton()
-                        .foregroundStyle(Color(hex: "#737b9f"))
+                        .foregroundStyle(Color(hex: "#8164be"))
                 }
             }
         }
