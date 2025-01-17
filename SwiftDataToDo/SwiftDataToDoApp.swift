@@ -10,14 +10,14 @@ import SwiftData
 
 @main
 struct SwiftDataToDoApp: App {
-    let modelContainer: ModelContainer = {
+    let container: ModelContainer = {
         let schema = Schema([Item.self])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
-            fatalError("ModelContainer를 생성할 수 없습니다: \(error)")
+            fatalError("SwiftData 저장소 생성 실패: \(error)")
         }
     }()
     
@@ -25,6 +25,6 @@ struct SwiftDataToDoApp: App {
         WindowGroup {
             ContentView()
         }
-        .modelContainer(modelContainer)
+        .modelContainer(container)
     }
 }

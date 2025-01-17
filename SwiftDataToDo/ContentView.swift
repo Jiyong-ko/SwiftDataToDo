@@ -77,6 +77,14 @@ struct ContentView: View {
             let newItem = Item(title: newItemTitle, timestamp: Date())
             modelContext.insert(newItem)
             newItemTitle = ""
+            
+            // 저장 시도
+            do {
+                try modelContext.save()
+                print("아이템이 성공적으로 저장되었습니다: \(newItem.title)")
+            } catch {
+                print("저장 실패: \(error)")
+            }
         }
     }
 
@@ -84,6 +92,14 @@ struct ContentView: View {
         withAnimation {
             for index in offsets {
                 modelContext.delete(items[index])
+            }
+            
+            // 삭제 후 저장 시도
+            do {
+                try modelContext.save()
+                print("아이템이 성공적으로 삭제되었습니다")
+            } catch {
+                print("삭제 실패: \(error)")
             }
         }
     }
@@ -109,5 +125,5 @@ struct ItemDetailView: View {
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+        .modelContainer(for: Item.self, inMemory: false)
 }
