@@ -12,6 +12,17 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var items: [Item]
     @State private var newItemTitle: String = ""
+    @State private var showCompleted: Bool = false  // 완료된 항목 표시 여부
+    
+    // 완료되지 않은 항목들
+    private var incompleteItems: [Item] {
+        items.filter { !$0.isCompleted }
+    }
+    
+    // 완료된 항목들
+    private var completedItems: [Item] {
+        items.filter { $0.isCompleted }
+    }
 
     var body: some View {
         NavigationStack {
@@ -26,29 +37,34 @@ struct ContentView: View {
                 .padding()
 
                 List {
-                    ForEach(items) { item in
-                        HStack {
-                            Button(action: {
-                                withAnimation {
-                                    item.isCompleted.toggle()
+                    // 진행중인 할 일들
+                    Section("진행중") {
+                        ForEach(incompleteItems) { item in
+                            TodoItemRow(item: item)
+                        }
+                        .onDelete(perform: deleteItems)
+                    }
+                    
+                    // 완료된 할 일들
+                    Section {
+                        DisclosureGroup(
+                            isExpanded: $showCompleted,
+                            content: {
+                                ForEach(completedItems) { item in
+                                    TodoItemRow(item: item)
                                 }
-                            }) {
-                                Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
-                            }
-                            .buttonStyle(.plain)
-
-                            NavigationLink(destination: ItemDetailView(item: item)) {
-                                VStack(alignment: .leading) {
-                                    Text(item.title)
-                                        .strikethrough(item.isCompleted)
-                                    Text(item.timestamp, format: .dateTime)
-                                        .font(.caption)
+                                .onDelete(perform: deleteItems)
+                            },
+                            label: {
+                                HStack {
+                                    Text("완료됨")
+                                    Spacer()
+                                    Text("\(completedItems.count)")
                                         .foregroundColor(.gray)
                                 }
                             }
-                        }
+                        )
                     }
-                    .onDelete(perform: deleteItems)
                 }
             }
             .navigationTitle("TO DO")
@@ -120,6 +136,34 @@ struct ItemDetailView: View {
         }
         .padding()
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// 할 일 항목 행을 위한 새로운 뷰
+struct TodoItemRow: View {
+    let item: Item
+    
+    var body: some View {
+        HStack {
+            Button(action: {
+                withAnimation {
+                    item.isCompleted.toggle()
+                }
+            }) {
+                Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
+            }
+            .buttonStyle(.plain)
+
+            NavigationLink(destination: ItemDetailView(item: item)) {
+                VStack(alignment: .leading) {
+                    Text(item.title)
+                        .strikethrough(item.isCompleted)
+                    Text(item.timestamp, format: .dateTime)
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+            }
+        }
     }
 }
 
