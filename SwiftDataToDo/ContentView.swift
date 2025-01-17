@@ -48,7 +48,20 @@ struct ContentView: View {
                     .onDelete(perform: deleteItems)
                 }
             }
+            .navigationTitle("TO DO")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("TO DO")
+                        .font(.system(.title, design: .rounded, weight: .bold))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.blue, .purple],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     EditButton()
                 }
