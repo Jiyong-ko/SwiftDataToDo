@@ -14,7 +14,7 @@ struct ContentView: View {
     @State private var newItemTitle: String = ""
 
     var body: some View {
-        NavigationSplitView {
+        NavigationStack {
             VStack {
                 HStack {
                     TextField("새로운 할 일", text: $newItemTitle)
@@ -29,19 +29,22 @@ struct ContentView: View {
                     ForEach(items) { item in
                         HStack {
                             Button(action: {
-                                item.isCompleted.toggle()
+                                withAnimation {
+                                    item.isCompleted.toggle()
+                                }
                             }) {
-                                Image(
-                                    systemName: item.isCompleted
-                                        ? "checkmark.circle.fill" : "circle")
+                                Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
                             }
+                            .buttonStyle(.plain)
 
-                            VStack(alignment: .leading) {
-                                Text(item.title)
-                                    .strikethrough(item.isCompleted)
-                                Text(item.timestamp, format: .dateTime)
-                                    .font(.caption)
-                                    .foregroundColor(.gray)
+                            NavigationLink(destination: ItemDetailView(item: item)) {
+                                VStack(alignment: .leading) {
+                                    Text(item.title)
+                                        .strikethrough(item.isCompleted)
+                                    Text(item.timestamp, format: .dateTime)
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
                             }
                         }
                     }
@@ -66,8 +69,6 @@ struct ContentView: View {
                     EditButton()
                 }
             }
-        } detail: {
-            Text("할 일을 선택하세요")
         }
     }
 
@@ -85,6 +86,24 @@ struct ContentView: View {
                 modelContext.delete(items[index])
             }
         }
+    }
+}
+
+struct ItemDetailView: View {
+    let item: Item
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text(item.title)
+                .font(.title)
+            
+            Text("생성일: \(item.timestamp, format: .dateTime)")
+            
+            Text("상태: \(item.isCompleted ? "완료" : "진행 중")")
+                .foregroundColor(item.isCompleted ? .green : .blue)
+        }
+        .padding()
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
