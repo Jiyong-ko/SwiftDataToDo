@@ -13,6 +13,8 @@ struct ContentView: View {
     @Query private var items: [Item]
     @State private var newItemTitle: String = ""
     @State private var showCompleted: Bool = false  // 완료된 항목 표시 여부
+    @State private var searchText: String = ""  // 검색어 상태
+    @State private var isSearching: Bool = false  // 검색 모드 상태
     
     // 완료되지 않은 항목들
     private var incompleteItems: [Item] {
@@ -23,15 +25,50 @@ struct ContentView: View {
     private var completedItems: [Item] {
         items.filter { $0.isCompleted }
     }
+    
+    // 검색 결과를 필터링하는 계산 프로퍼티
+    private var filteredIncompleteItems: [Item] {
+        if searchText.isEmpty {
+            return incompleteItems
+        }
+        return incompleteItems.filter { $0.title.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+    private var filteredCompletedItems: [Item] {
+        if searchText.isEmpty {
+            return completedItems
+        }
+        return completedItems.filter { $0.title.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+        
+    
 
     var body: some View {
         NavigationStack {
             VStack {
+                if isSearching {
+                    // 검색 바
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundStyle(.blue)
+                        TextField("검색", text: $searchText)
+                        if !searchText.isEmpty {
+                            Button(action: {
+                                searchText = ""
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(Color(hex: "#a1acdf"))
+                            }
+                        }
+                    }
+                }
                 HStack {
                     TextField("새로운 할 일", text: $newItemTitle)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                     Button(action: addItem) {
                         Label("추가", systemImage: "plus.circle.fill")
+                            .foregroundStyle(Color(hex: "#737b9f"))
                     }
                 }
                 .padding()
@@ -66,6 +103,9 @@ struct ContentView: View {
                         )
                     }
                 }
+                .scrollContentBackground(.hidden) // 기본 배경을 숨기고
+                .background(Color(hex: "#a1acdf")) // 원하는 색상 지정
+                
             }
             .navigationTitle("TO DO")
             .navigationBarTitleDisplayMode(.inline)
@@ -75,14 +115,28 @@ struct ContentView: View {
                         .font(.system(.title, design: .rounded, weight: .bold))
                         .foregroundStyle(
                             LinearGradient(
-                                colors: [.blue, .purple],
+                                colors: [Color(hex: "#a1acdf"), Color(hex: "#8164be")],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
                         )
                 }
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: {
+                        withAnimation {
+                            isSearching.toggle()
+                            if !isSearching {
+                                searchText = "" // 검색 모드 아닐 때, 검색어 초기화
+                            }
+                        }
+                    }) {
+                        Image(systemName: isSearching ? "xmark.circle.fill" : "magnifyingglass")
+                    }
+                    .foregroundStyle(Color(hex: "#737b9f"))
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     EditButton()
+                        .foregroundStyle(Color(hex: "#737b9f"))
                 }
             }
         }
@@ -164,6 +218,30 @@ struct TodoItemRow: View {
                 }
             }
         }
+    }
+}
+
+// UIColor 확장: 16진수 색상 코드 지원
+extension Color {
+    init(hex: String) {
+        let uiColor = UIColor(hex: hex)
+        self.init(uiColor)
+    }
+}
+
+extension UIColor {
+    convenience init(hex: String) {
+        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
+
+        var rgb: UInt64 = 0
+        Scanner(string: hexSanitized).scanHexInt64(&rgb)
+
+        let red = CGFloat((rgb & 0xFF0000) >> 16) / 255.0
+        let green = CGFloat((rgb & 0x00FF00) >> 8) / 255.0
+        let blue = CGFloat(rgb & 0x0000FF) / 255.0
+
+        self.init(red: red, green: green, blue: blue, alpha: 1.0)
     }
 }
 
