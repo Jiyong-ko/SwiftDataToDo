@@ -222,7 +222,7 @@ struct TodoItemRow: View {
             NavigationLink(destination: ItemDetailView(item: item)) {
                 VStack(alignment: .leading) {
                     Text(item.title)
-                        .strikethrough(item.isCompleted)
+                        .strikethrough(item.isCompleted, color: .purple) // 취소선 추가
                     Text(item.timestamp, format: .dateTime)
                         .font(.caption)
                         .foregroundColor(.gray)
