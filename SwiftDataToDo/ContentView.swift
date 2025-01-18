@@ -15,6 +15,7 @@ struct ContentView: View {
     @State private var showCompleted: Bool = false  // 완료된 항목 표시 여부
     @State private var searchText: String = ""  // 검색어 상태
     @State private var isSearching: Bool = false  // 검색 모드 상태
+
     
     // 완료되지 않은 항목들
     private var incompleteItems: [Item] {
@@ -26,23 +27,26 @@ struct ContentView: View {
         items.filter { $0.isCompleted }
     }
     
-    // 검색 결과를 필터링하는 계산 프로퍼티
-    private var filteredIncompleteItems: [Item] {
+    
+    // 진행 중 항목의 검색 필터링
+    private var filteredIncompletedItems: [Item] {
         if searchText.isEmpty {
             return incompleteItems
         }
-        return incompleteItems.filter { $0.title.localizedCaseInsensitiveContains(searchText)
-        }
+        return incompleteItems.filter { $0.title.localizedCaseInsensitiveContains(searchText)}
     }
+    
+    // 완료된 항목의 검색 필터링
     private var filteredCompletedItems: [Item] {
         if searchText.isEmpty {
             return completedItems
         }
-        return completedItems.filter { $0.title.localizedCaseInsensitiveContains(searchText)
+        return completedItems.filter {
+            $0.title.localizedCaseInsensitiveContains(searchText)
         }
     }
+
         
-    
 
     var body: some View {
         NavigationStack {
@@ -62,6 +66,7 @@ struct ContentView: View {
                             }
                         }
                     }
+                    .padding()
                 }
                 HStack {
                     TextField("새로운 할 일", text: $newItemTitle)
@@ -76,27 +81,31 @@ struct ContentView: View {
                 List {
                     // 진행중인 할 일들
                     Section("진행 중") {
-                        ForEach(incompleteItems) { item in
+                        ForEach(filteredIncompletedItems) { item in
                             TodoItemRow(item: item)
                         }
                         .onDelete(perform: deleteItems)
                     }
                     
                     // 완료된 할 일들
-                    Section {
+                    Section("완료됨") {
                         DisclosureGroup(
                             isExpanded: $showCompleted,
                             content: {
-                                ForEach(completedItems) { item in
+                                ForEach(filteredCompletedItems) { item in
                                     TodoItemRow(item: item)
                                 }
                                 .onDelete(perform: deleteItems)
                             },
                             label: {
                                 HStack {
-                                    Text("완료됨")
+                                    if showCompleted {
+                                        Text("완료된 목록 가리기")
+                                    } else {
+                                        Text("완료된 목록 보기")
+                                    }
                                     Spacer()
-                                    Text("\(completedItems.count)")
+                                    Text("\(filteredCompletedItems.count)")
                                         .foregroundColor(.gray)
                                 }
                             }
@@ -195,7 +204,7 @@ struct ItemDetailView: View {
     }
 }
 
-// 할 일 항목 행을 위한 새로운 뷰
+// To Do의 리스트 뷰
 struct TodoItemRow: View {
     let item: Item
     
@@ -223,6 +232,8 @@ struct TodoItemRow: View {
     }
 }
 
+
+    
 // UIColor 확장: 16진수 색상 코드 지원
 extension Color {
     init(hex: String) {
