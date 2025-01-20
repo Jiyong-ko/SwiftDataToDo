@@ -10,38 +10,38 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
-    @State private var newItemTitle: String = ""
+    @Query private var todos: [TodoItem]
+    @State private var newTodoTitle: String = ""
     @State private var showCompleted: Bool = false  // 완료된 항목 표시 여부
     @State private var searchText: String = ""  // 검색어 상태
     @State private var isSearching: Bool = false  // 검색 모드 상태
 
     
     // 완료되지 않은 항목들
-    private var incompleteItems: [Item] {
-        items.filter { !$0.isCompleted }
+    private var incompletedTodoItems: [TodoItem] {
+        todos.filter { !$0.isCompleted }
     }
     
     // 완료된 항목들
-    private var completedItems: [Item] {
-        items.filter { $0.isCompleted }
+    private var completedTodoItems: [TodoItem] {
+        todos.filter { $0.isCompleted }
     }
     
     
     // 진행 중 항목의 검색 필터링
-    private var filteredIncompletedItems: [Item] {
+    private var filteredIncompletedTodoItems: [TodoItem] {
         if searchText.isEmpty {
-            return incompleteItems
+            return incompletedTodoItems
         }
-        return incompleteItems.filter { $0.title.localizedCaseInsensitiveContains(searchText)}
+        return incompletedTodoItems.filter { $0.title.localizedCaseInsensitiveContains(searchText)}
     }
     
     // 완료된 항목의 검색 필터링
-    private var filteredCompletedItems: [Item] {
+    private var filteredCompletedTodoItems: [TodoItem] {
         if searchText.isEmpty {
-            return completedItems
+            return completedTodoItems
         }
-        return completedItems.filter {
+        return completedTodoItems.filter {
             $0.title.localizedCaseInsensitiveContains(searchText)
         }
     }
@@ -69,9 +69,9 @@ struct ContentView: View {
                     .padding()
                 }
                 HStack {
-                    TextField("새로운 할 일", text: $newItemTitle)
+                    TextField("새로운 할 일", text: $newTodoTitle)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
-                    Button(action: addItem) {
+                    Button(action: addTodoItem) {
                         Label("추가", systemImage: "plus.circle.fill")
                             .foregroundStyle(Color(hex: "#8164be"))
                     }
@@ -81,10 +81,10 @@ struct ContentView: View {
                 List {
                     // 진행중인 할 일들
                     Section("진행 중") {
-                        ForEach(filteredIncompletedItems) { item in
-                            TodoItemRow(item: item)
+                        ForEach(filteredIncompletedTodoItems) { todoItem in
+                            TodoItemRow(todoItem: todoItem)
                         }
-                        .onDelete(perform: deleteItems)
+                        .onDelete(perform: deleteTodoItems)
                     }
                     
                     // 완료된 할 일들
@@ -92,10 +92,10 @@ struct ContentView: View {
                         DisclosureGroup(
                             isExpanded: $showCompleted,
                             content: {
-                                ForEach(filteredCompletedItems) { item in
-                                    TodoItemRow(item: item)
+                                ForEach(filteredCompletedTodoItems) { todoItem in
+                                    TodoItemRow(todoItem: todoItem)
                                 }
-                                .onDelete(perform: deleteItems)
+                                .onDelete(perform: deleteTodoItems)
                             },
                             label: {
                                 HStack {
@@ -105,7 +105,7 @@ struct ContentView: View {
                                         Text("완료된 목록 보기")
                                     }
                                     Spacer()
-                                    Text("\(filteredCompletedItems.count)")
+                                    Text("\(filteredCompletedTodoItems.count)")
                                         .foregroundColor(.gray)
                                 }
                             }
@@ -153,26 +153,26 @@ struct ContentView: View {
         }
     }
 
-    private func addItem() {
+    private func addTodoItem() {
         withAnimation {
-            let newItem = Item(title: newItemTitle, timestamp: Date())
-            modelContext.insert(newItem)
-            newItemTitle = ""
+            let newTodoItem = TodoItem(title: newTodoTitle, timestamp: Date())
+            modelContext.insert(newTodoItem)
+            newTodoTitle = ""
             
             // 저장 시도
             do {
                 try modelContext.save()
-                print("아이템이 성공적으로 저장되었습니다: \(newItem.title)")
+                print("아이템이 성공적으로 저장되었습니다: \(newTodoItem.title)")
             } catch {
                 print("저장 실패: \(error)")
             }
         }
     }
 
-    private func deleteItems(offsets: IndexSet) {
+    private func deleteTodoItems(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
-                modelContext.delete(items[index])
+                modelContext.delete(todos[index])
             }
             
             // 삭제 후 저장 시도
@@ -186,18 +186,18 @@ struct ContentView: View {
     }
 }
 
-struct ItemDetailView: View {
-    let item: Item
+struct TodoDetailView: View {
+    let todoItem: TodoItem
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text(item.title)
+            Text(todoItem.title)
                 .font(.title)
             
-            Text("생성일: \(item.timestamp, format: .dateTime)")
+            Text("생성일: \(todoItem.timestamp, format: .dateTime)")
             
-            Text("상태: \(item.isCompleted ? "완료" : "진행 중")")
-                .foregroundColor(item.isCompleted ? .green : .blue)
+            Text("상태: \(todoItem.isCompleted ? "완료" : "진행 중")")
+                .foregroundColor(todoItem.isCompleted ? .green : .blue)
         }
         .padding()
         .navigationBarTitleDisplayMode(.inline)
@@ -206,24 +206,24 @@ struct ItemDetailView: View {
 
 // To Do의 리스트 뷰
 struct TodoItemRow: View {
-    let item: Item
+    let todoItem: TodoItem
     
     var body: some View {
         HStack {
             Button(action: {
                 withAnimation {
-                    item.isCompleted.toggle()
+                    todoItem.isCompleted.toggle()
                 }
             }) {
-                Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
+                Image(systemName: todoItem.isCompleted ? "checkmark.circle.fill" : "circle")
             }
             .buttonStyle(.plain)
 
-            NavigationLink(destination: ItemDetailView(item: item)) {
+            NavigationLink(destination: TodoDetailView(todoItem: todoItem)) {
                 VStack(alignment: .leading) {
-                    Text(item.title)
-                        .strikethrough(item.isCompleted, color: .purple) // 취소선 추가
-                    Text(item.timestamp, format: .dateTime)
+                    Text(todoItem.title)
+                        .strikethrough(todoItem.isCompleted, color: .purple) // 취소선 추가
+                    Text(todoItem.timestamp, format: .dateTime)
                         .font(.caption)
                         .foregroundColor(.gray)
                 }
@@ -260,5 +260,5 @@ extension UIColor {
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: false)
+        .modelContainer(for: TodoItem.self, inMemory: false)
 }
