@@ -9,7 +9,8 @@ import Foundation
 import SwiftData
 
 @Model
-final class Item {
+final class TodoItem {
+    var id: String = UUID().uuidString
     var title: String
     var timestamp: Date
     var isCompleted: Bool
