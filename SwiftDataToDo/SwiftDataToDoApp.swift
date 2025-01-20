@@ -11,7 +11,7 @@ import SwiftData
 @main
 struct SwiftDataToDoApp: App {
     let container: ModelContainer = {
-        let schema = Schema([Item.self])
+        let schema = Schema([TodoItem.self])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         
         do {
